@@ -42,7 +42,21 @@ module.exports = [
 		resolve: {
 			extensions: [".webpack.js", ".web.js", ".ts", ".js"],
 		},
-		externals: [nodeExternals()],
+		node: PLATFORM === 'web' ? {
+			fs: 'empty',
+			path: 'empty',
+			crypto: 'empty',
+			stream: 'empty',
+			http: 'empty',
+			https: 'empty',
+			zlib: 'empty',
+			url: 'empty',
+			assert: 'empty',
+			util: 'empty',
+			__dirname: true,
+			__filename: true
+		} : {},
+		externals: PLATFORM === 'web' ? [] : [nodeExternals()],
 		module: {
 			loaders: [TS_LOADER],
 		},

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炉石传说随从卡牌演示</title>
+    <!-- 字体文件不存在，移除CSS引用 -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .cards-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .card-wrapper {
+            text-align: center;
+        }
+        .card-title {
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        canvas {
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        .error {
+            color: #ff6b6b;
+            background: rgba(255,107,107,0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .loading {
+            color: #4ecdc4;
+            font-style: italic;
+        }
+        .success {
+            color: #4ecdc4;
+            background: rgba(78,205,196,0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 炉石传说随从卡牌演示 🔥</h1>
+        
+        <div class="cards-container">
+            <div class="card-wrapper">
+                <div class="card-title">传说随从</div>
+                <canvas id="legendaryCard" width="400" height="600"></canvas>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="card-title">史诗随从</div>
+                <canvas id="epicCard" width="400" height="600"></canvas>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="card-title">稀有随从</div>
+                <canvas id="rareCard" width="400" height="600"></canvas>
+            </div>
+        </div>
+        
+        <div id="status" class="loading">正在加载Sunwell库...</div>
+    </div>
+
+    <!-- 使用官方CDN版本的Sunwell库 -->
+    <script src="https://sunwell.hearthsim.net/branches/master/sunwell.cdn.min.js"></script>
+    <script>
+        // 等待DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                // 检查Sunwell是否可用
+                if (typeof Sunwell === 'undefined') {
+                    throw new Error('Sunwell库未正确加载');
+                }
+                
+                statusDiv.innerHTML = '正在初始化Sunwell...';
+                
+                // 初始化Sunwell实例
+                const sunwell = new Sunwell({
+                    assetFolder: './assets/',
+                    titleFont: "belwe_fsextrabold",
+                    bodyFontRegular: "franklin_gothic_fsMdCn",
+                    bodyFontItalic: "franklin_gothic_fsMdCnIt",
+                    bodyFontBold: "franklin_gothic_fsDemiCn",
+                    bodyFontBoldItalic: "franklin_gothic_fsDemiCn",
+                    bodyFontSize: 38,
+                    bodyLineHeight: 40,
+                    bodyFontOffset: {x: 0, y: 26},
+                    debug: true
+                });
+                
+                statusDiv.innerHTML = '正在渲染卡牌...';
+                
+                // 传说随从卡牌数据
+                const legendaryCardData = {
+                    "id": "LEGENDARY_001",
+                    "name": "龙王玛里苟斯",
+                    "text": "<b>战吼：</b>将5张法术伤害+2的法术牌置入你的手牌。",
+                    "flavor": "曾经的守护巨龙，现在的毁灭之源。",
+                    "attack": 4,
+                    "health": 12,
+                    "cost": 9,
+                    "cardClass": "NEUTRAL",
+                    "rarity": "LEGENDARY",
+                    "type": "MINION",
+                    "race": "DRAGON",
+                    "set": "EXPERT1",
+                    "collectible": true,
+                    "elite": true,
+                    "texture": null
+                };
+                
+                // 史诗随从卡牌数据
+                const epicCardData = {
+                    "id": "EPIC_001",
+                    "name": "暮光守护者",
+                    "text": "<b>嘲讽</b>\n<b>战吼：</b>如果你的手牌中有龙牌，获得+1攻击力。",
+                    "flavor": "守护着古老秘密的龙族战士。",
+                    "attack": 2,
+                    "health": 4,
+                    "cost": 4,
+                    "cardClass": "NEUTRAL",
+                    "rarity": "EPIC",
+                    "type": "MINION",
+                    "race": "DRAGON",
+                    "set": "EXPERT1",
+                    "collectible": true,
+                    "texture": null
+                };
+                
+                // 稀有随从卡牌数据
+                const rareCardData = {
+                    "id": "RARE_001",
+                    "name": "青铜龙",
+                    "text": "<b>战吼：</b>发现一张法师法术牌。",
+                    "flavor": "时间的守护者，掌握着神秘的魔法。",
+                    "attack": 3,
+                    "health": 5,
+                    "cost": 5,
+                    "cardClass": "MAGE",
+                    "rarity": "RARE",
+                    "type": "MINION",
+                    "race": "DRAGON",
+                    "set": "EXPERT1",
+                    "collectible": true,
+                    "texture": null
+                };
+                
+                let completedCards = 0;
+                const totalCards = 3;
+                
+                // 渲染卡牌的函数
+                function renderCard(cardData, canvasId, cardName) {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) {
+                        console.error(`Canvas ${canvasId} not found`);
+                        return;
+                    }
+                    
+                    try {
+                        sunwell.createCard(
+                            cardData,
+                            400,
+                            false,
+                            canvas,
+                            function() {
+                                console.log(`${cardName} 渲染完成`);
+                                completedCards++;
+                                if (completedCards === totalCards) {
+                                    statusDiv.innerHTML = '✅ 所有卡牌渲染完成！使用真正的Sunwell库';
+                                    statusDiv.className = 'success';
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        console.error(`渲染 ${cardName} 时出错:`, error);
+                        statusDiv.innerHTML = `❌ 渲染 ${cardName} 失败: ${error.message}`;
+                        statusDiv.className = 'error';
+                    }
+                }
+                
+                // 渲染所有卡牌
+                renderCard(legendaryCardData, 'legendaryCard', '龙王玛里苟斯');
+                renderCard(epicCardData, 'epicCard', '暮光守护者');
+                renderCard(rareCardData, 'rareCard', '青铜龙');
+                
+            } catch (error) {
+                console.error('初始化Sunwell时出错:', error);
+                statusDiv.innerHTML = `❌ 加载失败: ${error.message}`;
+                statusDiv.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html>

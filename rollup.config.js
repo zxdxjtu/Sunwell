@@ -15,10 +15,12 @@ const PRODUCTION = process.env.NODE_ENV === "production";
 export default {
 	input: "src/Sunwell.ts",
 	output: {
-		format: "cjs",
+		format: PLATFORM === "web" ? "umd" : "cjs",
 		file: `dist/sunwell.${PLATFORM}${PRODUCTION ? ".min" : ""}.js`,
+		name: "Sunwell",
+		globals: PLATFORM === "web" ? {} : undefined
 	},
-	external: ExternalModulesList,
+	external: PLATFORM === "web" ? [] : ExternalModulesList,
 	name: "Sunwell",
 	plugins: [
 		jscc({
