@@ -1,0 +1,31 @@
+/* 经典隶变简体字体配置 */
+@font-face {
+    font-family: '经典隶变简';
+    src: url('经典隶变简.woff2') format('woff2'),
+         url('经典隶变简.woff') format('woff'),
+         url('经典隶变简.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 隶书字体fallback配置 */
+.lishu-font {
+    font-family: '经典隶变简', 'LiSu', '隶书', 'STLiti', 'Adobe 隶书 Std R', 'serif';
+}
+
+/* 为不同的卡牌文本元素定义字体 */
+.card-title {
+    font-family: '经典隶变简', 'LiSu', '隶书', 'STLiti', 'Adobe 隶书 Std R', 'serif';
+    font-weight: bold;
+}
+
+.card-body {
+    font-family: '经典隶变简', 'LiSu', '隶书', 'STLiti', 'Adobe 隶书 Std R', 'serif';
+    font-weight: normal;
+}
+
+.card-cost, .card-attack, .card-health {
+    font-family: '经典隶变简', 'LiSu', '隶书', 'STLiti', 'Adobe 隶书 Std R', 'serif';
+    font-weight: bold;
+}

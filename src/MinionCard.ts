@@ -6,7 +6,7 @@ export default class MinionCard extends Card {
 	public bodyTextColor = "black";
 	public bodyTextCoords = {
 		dx: 130,
-		dy: 622,
+		dy: 650,  // 🎯 从622改为650，向下移动28px避免与上边框重叠
 		dWidth: 408,
 		dHeight: 176,
 		sWidth: 408,

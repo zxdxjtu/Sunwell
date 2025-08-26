@@ -2,3 +2,26 @@ node_modules/
 npm-debug.log
 
 /dist/
+
+# Environment variables (contains API keys)
+.env
+.env.local
+.env.development
+.env.production
+
+# Debug files from development process
+*debug*.html
+*test*.html
+*temp*.html
+*working*.html
+*fix*.html
+debug-archive/
+
+# Development and documentation temporary files
+.trae/
+.playwright-mcp/
+*_FIX.md
+DEBUGGING_LESSONS.md
+DEVELOPMENT.md
+SOLUTION_ANALYSIS.md
+TEXT_RENDERING_FIX.md

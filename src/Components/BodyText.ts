@@ -151,24 +151,40 @@ export default class BodyText extends Component {
 				lineHeight *= r;
 			}
 		} else {
+			// 🎯 增强自动文本缩放逻辑，防止长文本超出边框
+			if (totalLength >= 50) {
+				fontSize = this.sunwell.options.bodyFontSize * 0.98;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.98;
+			}
+
 			if (totalLength >= 65) {
-				fontSize = this.sunwell.options.bodyFontSize * 0.95;
-				lineHeight = this.sunwell.options.bodyLineHeight * 0.95;
+				fontSize = this.sunwell.options.bodyFontSize * 0.92;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.92;
 			}
 
 			if (totalLength >= 80) {
-				fontSize = this.sunwell.options.bodyFontSize * 0.9;
-				lineHeight = this.sunwell.options.bodyLineHeight * 0.9;
+				fontSize = this.sunwell.options.bodyFontSize * 0.85;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.85;
 			}
 
 			if (totalLength >= 100) {
-				fontSize = this.sunwell.options.bodyFontSize * 0.8;
-				lineHeight = this.sunwell.options.bodyLineHeight * 0.8;
+				fontSize = this.sunwell.options.bodyFontSize * 0.75;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.75;
 			}
 
 			if (totalLength >= 120) {
-				fontSize = this.sunwell.options.bodyFontSize * 0.62;
-				lineHeight = this.sunwell.options.bodyLineHeight * 0.8;
+				fontSize = this.sunwell.options.bodyFontSize * 0.65;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.65;
+			}
+
+			if (totalLength >= 150) {
+				fontSize = this.sunwell.options.bodyFontSize * 0.55;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.55;
+			}
+
+			if (totalLength >= 180) {
+				fontSize = this.sunwell.options.bodyFontSize * 0.45;
+				lineHeight = this.sunwell.options.bodyLineHeight * 0.45;
 			}
 		}
 

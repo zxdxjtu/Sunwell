@@ -2,10 +2,32 @@
 
 # Sunwell
 
-A high quality Hearthstone card renderer in TypeScript.
+A high quality Hearthstone card renderer in TypeScript with enhanced Chinese text support.
 
 * Use it as a Javascript library in the browser to render to a `<canvas>` element.
 * Or in NodeJS using [node-canvas](https://github.com/Automattic/node-canvas)
+* **NEW**: Optimized Chinese text rendering with keyword bolding and intelligent layout
+
+## ✨ Enhanced Chinese Features
+
+This fork includes advanced Chinese text rendering capabilities:
+
+- **关键词粗体化**: Hearthstone keywords (战吼, 亡语, 嘲讽, etc.) are automatically bolded
+- **智能字体选择**: Automatic font size selection based on text length
+- **4行布局系统**: Intelligent 4-line layout with proper indentation to avoid overlapping with attack/health values
+- **标点符号优化**: Smart punctuation handling to prevent line-break issues
+- **完整炉石卡牌生成器**: Interactive card generator with Chinese text optimization
+
+### Quick Demo
+
+Try the enhanced card generator: `card_generator.html`
+
+Example Chinese text with keyword bolding:
+```
+战吼：发现一张法术牌。当你在本回合中施放它时，再次施放它（法术牌指向随机目标）。
+```
+
+Results in proper formatting with "战吼" bolded and intelligent line breaks.
 
 
 ## Download

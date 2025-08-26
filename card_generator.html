@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>炉石传说自定义卡牌生成器 - 修复版</title>
+    <link rel="stylesheet" href="./assets/经典隶变简.css">
+    <script src="./dist/sunwell.browser.js"></script>
+    <style>
+        /* 经典隶变简体字体配置 */
+        @font-face {
+            font-family: '经典隶变简';
+            src: url('./assets/经典隶变简.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .preview-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .image-upload {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-upload:hover {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .image-upload input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1e3c72;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .card-preview {
+            text-align: center;
+        }
+
+        .card-preview h3 {
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .card-canvas {
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: #ffffff !important; /* 强制白色背景提升卡牌显示效果 */
+            background-color: #ffffff !important;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .status.loading {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .preset-templates {
+            margin-bottom: 20px;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .template-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .template-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .preview-section {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 炉石传说自定义卡牌生成器 🔥</h1>
+            <p>创建属于你的独特炉石传说卡牌 - 修复版本</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <div class="preset-templates">
+                    <label>📋 预设模板</label>
+                    <div class="template-grid">
+                        <button class="template-btn" onclick="loadTemplate('legendary')">传说随从</button>
+                        <button class="template-btn" onclick="loadTemplate('epic')">史诗随从</button>
+                        <button class="template-btn" onclick="loadTemplate('rare')">稀有随从</button>
+                        <button class="template-btn" onclick="loadTemplate('random')">随机生成</button>
+                    </div>
+                </div>
+
+                <form id="cardForm">
+                    <div class="form-group">
+                        <label for="cardName">🏷️ 卡牌名称</label>
+                        <input type="text" id="cardName" name="cardName" placeholder="输入卡牌名称" maxlength="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardText">📝 卡牌描述</label>
+                        <textarea id="cardText" name="cardText" placeholder="输入卡牌效果描述" maxlength="200"></textarea>
+                    </div>
+
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label for="cost">💎 费用</label>
+                            <input type="number" id="cost" name="cost" min="0" max="20" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="attack">⚔️ 攻击力</label>
+                            <input type="number" id="attack" name="attack" min="0" max="30" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="health">❤️ 生命值</label>
+                            <input type="number" id="health" name="health" min="1" max="30" value="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cardClass">🎭 职业</label>
+                            <select id="cardClass" name="cardClass">
+                                <option value="NEUTRAL">中立</option>
+                                <option value="DRUID">德鲁伊</option>
+                                <option value="HUNTER">猎人</option>
+                                <option value="MAGE">法师</option>
+                                <option value="PALADIN">圣骑士</option>
+                                <option value="PRIEST">牧师</option>
+                                <option value="ROGUE">潜行者</option>
+                                <option value="SHAMAN">萨满祭司</option>
+                                <option value="WARLOCK">术士</option>
+                                <option value="WARRIOR">战士</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="rarity">💎 稀有度</label>
+                            <select id="rarity" name="rarity">
+                                <option value="COMMON">普通</option>
+                                <option value="RARE">稀有</option>
+                                <option value="EPIC">史诗</option>
+                                <option value="LEGENDARY">传说</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cardType">🃏 卡牌类型</label>
+                            <select id="cardType" name="cardType">
+                                <option value="MINION">随从</option>
+                                <option value="SPELL">法术</option>
+                                <option value="WEAPON">武器</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="race">🐉 种族</label>
+                            <select id="race" name="race">
+                                <option value="">无</option>
+                                <option value="BEAST">野兽</option>
+                                <option value="DEMON">恶魔</option>
+                                <option value="DRAGON">龙</option>
+                                <option value="ELEMENTAL">元素</option>
+                                <option value="MECH">机械</option>
+                                <option value="MURLOC">鱼人</option>
+                                <option value="PIRATE">海盗</option>
+                                <option value="TOTEM">图腾</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardSet">📦 卡牌系列</label>
+                        <select id="cardSet" name="cardSet">
+                            <option value="EXPERT1">经典</option>
+                            <option value="NAXX">纳克萨玛斯</option>
+                            <option value="GVG">地精大战侏儒</option>
+                            <option value="BRM">黑石山的火焰</option>
+                            <option value="TGT">冠军的试炼</option>
+                            <option value="LOE">探险者协会</option>
+                            <option value="OG">上古之神的低语</option>
+                            <option value="KARA">卡拉赞之夜</option>
+                            <option value="GANGS">龙争虎斗加基森</option>
+                            <option value="UNGORO">勇闯安戈洛</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="artUpload">🎨 卡牌艺术图</label>
+                        <div class="image-upload" onclick="document.getElementById('artUpload').click()">
+                            <input type="file" id="artUpload" accept="image/*" onchange="handleImageUpload(event)">
+                            <div id="uploadText">
+                                <p>📸 点击上传图片</p>
+                                <p style="font-size: 12px; opacity: 0.7;">支持 JPG, PNG, GIF 格式</p>
+                            </div>
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn" onclick="generateCard()">🎯 生成卡牌</button>
+                        <button type="button" class="btn btn-secondary" onclick="downloadCard()">💾 下载卡牌</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 重置表单</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="preview-section">
+                <div class="card-preview">
+                    <h3>🎴 卡牌预览</h3>
+                    <canvas id="cardCanvas" class="card-canvas" width="400" height="600"></canvas>
+                    <div id="status" class="status loading">等待生成卡牌...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在加载Sunwell库之前定义chars函数 -->
+    <script>
+        // 🔧 修复：完整定义Sunwell需要的chars函数
+        function chars(text) {
+            if (!text || typeof text !== 'string') return [];
+            return Array.from(text);
+        }
+        
+        // 完整的Unicode字符分类函数
+        chars.category = function(char) {
+            if (!char || typeof char !== 'string' || char.length === 0) return 'Cn';
+            
+            const code = char.charCodeAt(0);
+            
+            // 基本拉丁字母 (A-Z, a-z)
+            if ((code >= 65 && code <= 90)) return 'Lu'; // Letter, uppercase
+            if ((code >= 97 && code <= 122)) return 'Ll'; // Letter, lowercase
+            
+            // 数字 (0-9)
+            if (code >= 48 && code <= 57) return 'Nd'; // Number, decimal digit
+            
+            // 空格和控制字符
+            if (code === 32 || code === 160) return 'Zs'; // Separator, space
+            if (code < 32) return 'Cc'; // Other, control
+            
+            // 常见标点符号
+            if ((code >= 33 && code <= 47) || (code >= 58 && code <= 64) || 
+                (code >= 91 && code <= 96) || (code >= 123 && code <= 126)) {
+                return 'Po'; // Punctuation, other
+            }
+            
+            // 中文字符范围
+            if (code >= 0x4E00 && code <= 0x9FFF) return 'Lo'; // Letter, other (CJK)
+            if (code >= 0x3400 && code <= 0x4DBF) return 'Lo'; // CJK Extension A
+            if (code >= 0x20000 && code <= 0x2A6DF) return 'Lo'; // CJK Extension B
+            if (code >= 0x2A700 && code <= 0x2B73F) return 'Lo'; // CJK Extension C
+            if (code >= 0x2B740 && code <= 0x2B81F) return 'Lo'; // CJK Extension D
+            if (code >= 0x2B820 && code <= 0x2CEAF) return 'Lo'; // CJK Extension E
+            
+            // 中文标点符号
+            if ((code >= 0x3000 && code <= 0x303F) || // CJK Symbols and Punctuation
+                (code >= 0xFF00 && code <= 0xFFEF)) { // Halfwidth and Fullwidth Forms
+                return 'Po'; // Punctuation, other
+            }
+            
+            // 拉丁字符扩展
+            if (code >= 0x0080 && code <= 0x024F) return 'Lo'; // Latin Extended
+            
+            // 其他常见Unicode块
+            if (code >= 0x0370 && code <= 0x03FF) return 'Lo'; // Greek and Coptic
+            if (code >= 0x0400 && code <= 0x04FF) return 'Lo'; // Cyrillic
+            if (code >= 0x0590 && code <= 0x05FF) return 'Lo'; // Hebrew
+            if (code >= 0x0600 && code <= 0x06FF) return 'Lo'; // Arabic
+            
+            // 默认返回
+            return 'Lo'; // Letter, other (更安全的默认值)
+        };
+        
+        // 字符宽度计算函数
+        chars.width = function(char) {
+            if (!char) return 0;
+            const code = char.charCodeAt(0);
+            
+            // 中文字符通常是全角宽度
+            if (code >= 0x4E00 && code <= 0x9FFF) return 2;
+            if (code >= 0x3000 && code <= 0x303F) return 2; // 中文标点
+            if (code >= 0xFF00 && code <= 0xFFEF) return 2; // 全角字符
+            
+            // 西文字符通常是半角宽度
+            return 1;
+        };
+        
+        // 挂载到全局对象
+        window.chars = chars;
+        
+        // 🔧 关键修复：定义Sunwell需要的LineBreaker全局对象
+        window.LineBreaker = function(text) {
+            if (!text || typeof text !== 'string') return [];
+            
+            // 简单的中文分行器 - 按字符分割
+            const breaks = [];
+            for (let i = 0; i < text.length; i++) {
+                breaks.push({
+                    position: i,
+                    required: false // 可选分行点
+                });
+            }
+            
+            return {
+                nextBreak: function() {
+                    return breaks.shift() || null;
+                }
+            };
+        };
+        
+        // 调试模式下输出函数信息
+        console.log('✅ chars函数已定义:', typeof chars, typeof chars.category, typeof chars.width);
+        console.log('✅ LineBreaker函数已定义:', typeof LineBreaker);
+        
+        // 确保全局对象可访问
+        console.log('✅ global.chars:', typeof window.chars);
+        console.log('✅ global.LineBreaker:', typeof window.LineBreaker);
+    </script>
+    
+    <!-- 引入Sunwell库 - 使用browser版本 -->
+    <script src="./dist/sunwell.browser.js"></script>
+    <script>
+        // 全局变量
+        let sunwell;
+        let currentCardData = {};
+        let uploadedImage = null;
+        let debugMode = true; // 启用调试模式
+
+        // 🔥 修复版本的炉石关键词列表
+        const hearthstoneKeywords = [
+            '战吼', '亡语', '嘲讽', '风怒', '冲锋', '潜行', 
+            '连击', '沉默', '奥秘', '冻结', '过载', 
+            '法术伤害', '圣盾', '传说', '抉择', '激励', 
+            '发现', '任务', '进化', '吸血', '回响', '剧毒',
+            '法术强度', '生命窃取', '招募', '突袭', '磁力',
+            '超杀', '双生法术', '复生', '祈求', '流放', '休眠'
+        ];
+
+        // 🛡️ 安全的关键词处理函数 - 完全重写避免无限循环
+        function safeProcessKeywords(text) {
+            if (!text || typeof text !== 'string') {
+                return { processedText: text || '', keywords: [] };
+            }
+
+            let result = text;
+            let foundKeywords = [];
+            
+            try {
+                // 使用简单的字符串替换，避免复杂正则表达式
+                hearthstoneKeywords.forEach(keyword => {
+                    if (!keyword) return;
+                    
+                    const searchPattern = keyword + '：';
+                    const replacePattern = `<b>${keyword}</b>：`; // 🔧 修复：使用Sunwell支持的<b>标签
+                    
+                    // 简单的全局替换，防止无限循环
+                    let lastResult = result;
+                    result = result.split(searchPattern).join(replacePattern);
+                    
+                    // 如果有替换，记录关键词
+                    if (result !== lastResult) {
+                        foundKeywords.push(keyword);
+                    }
+                });
+                
+                return { processedText: result, keywords: foundKeywords };
+            } catch (error) {
+                console.error('关键词处理错误:', error);
+                return { processedText: text, keywords: [] };
+            }
+        }
+
+        // 🛡️ 安全的文本分行函数 - 修复版本
+        function safeTextSplit(text, maxWidth, fontSize) {
+            if (!text || typeof text !== 'string') {
+                return [''];
+            }
+
+            // 🔧 修复：基于炉石卡牌实际表现设置精确的换行参数
+            // 根据图片分析，理想的第一行长度应该是11个字符："战吼：发现一张法术牌。当"
+            const targetCharsPerLine = 11; // 固定为11个字符，确保在正确位置换行
+            
+            // 调试信息
+            console.log(`📏 分行参数: maxWidth=${maxWidth}, fontSize=${fontSize}, targetCharsPerLine=${targetCharsPerLine}`);
+            console.log(`📏 原始文本: "${text}"`);
+            console.log(`📏 文本中是否包含<b>标签:`, text.includes('<b>'));
+            
+            const lines = [];
+            let currentLine = '';
+            let i = 0;
+            
+            // 安全计数器
+            const safeLimit = text.length + 50;
+            let iterations = 0;
+            
+            while (i < text.length && lines.length < 4 && iterations < safeLimit) {
+                iterations++;
+                
+                // 🔧 修复：处理粗体标记及后续字符
+                if (text.substr(i, 3) === '<b>') {
+                    console.log(`📏 在分割中找到<b>标签在位置 ${i}`);
+                    const endIndex = text.indexOf('</b>', i);
+                    if (endIndex > i) {
+                        const boldBlock = text.substring(i, endIndex + 4);
+                        const boldText = text.substring(i + 3, endIndex);
+                        console.log(`📏 分割中的粗体块: "${boldBlock}", 粗体文本: "${boldText}"`);
+                        
+                        // 🔧 关键修复：战吼等关键词后的冒号不应导致换行
+                        let estimatedLength = boldText.length;
+                        const nextCharIndex = endIndex + 4;
+                        let nextChar = '';
+                        if (nextCharIndex < text.length) {
+                            nextChar = text[nextCharIndex];
+                            if (/[：，。！？；]/.test(nextChar)) {
+                                estimatedLength += 1; // 标点符号计入长度
+                            }
+                        }
+                        
+                        // 特殊处理：关键词+冒号的组合优先保持在同一行
+                        const isKeywordColon = /^(战吼|亡语|嘲讽|冲锋|潜行|圣盾|剧毒|风怒|生命偷取|法术伤害|过载|连击|奥秘|任务|发现)$/.test(boldText) && nextChar === '：';
+                        
+                        // 🔧 使用精确的长度检查：移除标签计算实际字符数
+                        const currentEffectiveLength = currentLine.replace(/<\/?b>/g, '').length;
+                        
+                        if (currentEffectiveLength + estimatedLength > targetCharsPerLine && currentLine && !isKeywordColon) {
+                            lines.push(currentLine);
+                            currentLine = boldBlock;
+                        } else {
+                            currentLine += boldBlock;
+                        }
+                        i = endIndex + 4;
+                        continue;
+                    }
+                }
+                
+                // 普通字符处理
+                const char = text[i];
+                
+                // 🔧 特殊处理：冒号优先与前面内容保持在同一行
+                const isColonAfterKeyword = char === '：' && currentLine.includes('</b>');
+                
+                // 🔧 使用更精确的长度检查（考虑字符的实际显示宽度而非数量）
+                const effectiveLength = currentLine.replace(/<\/?b>/g, '').length; // 移除标签计算实际字符数
+                
+                if (effectiveLength >= targetCharsPerLine && currentLine && !isColonAfterKeyword) {
+                    lines.push(currentLine);
+                    currentLine = char;
+                } else {
+                    currentLine += char;
+                }
+                i++;
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            console.log(`📏 文本分割完成，共${lines.length}行:`);
+            lines.forEach((line, index) => {
+                console.log(`📏 第${index}行: "${line}"`);
+                console.log(`📏 第${index}行包含<b>标签:`, line.includes('<b>'));
+            });
+            
+            return lines.length > 0 ? lines : [''];
+        }
+
+        // 🛡️ 安全的中文卡牌名称渲染 - 增强版
+        function safeRenderChineseName(canvas, name) {
+            if (!canvas || !name) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            try {
+                // 🔧 修复：根据Sunwell卡牌规格调整名称位置
+                const nameX = 200; // 卡牌名称居中位置 (400px卡牌的中心)
+                const nameY = 70;  // 名称条位置 (调整到更准确的位置)
+                const clearWidth = 350; // 扩大清除区域宽度
+                const clearHeight = 50; // 扩大清除区域高度
+                
+                // 保存当前状态
+                ctx.save();
+                
+                // 清除名称区域 (使用透明色)
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillRect(nameX - clearWidth/2, nameY - clearHeight/2, clearWidth, clearHeight);
+                
+                // 恢复正常绘制模式
+                ctx.globalCompositeOperation = 'source-over';
+                
+                // 设置强化的字体样式
+                ctx.fillStyle = '#FFFFFF'; // 白色文字
+                ctx.strokeStyle = '#000000'; // 黑色描边
+                ctx.lineWidth = 4; // 更粗的描边
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const fontSize = 32; // 更大的字体
+                ctx.font = `bold ${fontSize}px "经典隶变简", Arial, sans-serif`;
+                
+                // 先绘制厚重的描边
+                ctx.strokeText(name, nameX, nameY);
+                // 再绘制文字
+                ctx.fillText(name, nameX, nameY);
+                
+                // 恢复状态
+                ctx.restore();
+                
+                console.log(`✅ 中文卡牌名称渲染成功: ${name} (位置: ${nameX}, ${nameY})`);
+            } catch (error) {
+                console.error('中文卡牌名称渲染失败:', error);
+            }
+        }
+
+        // 🛡️ 安全的中文文本渲染
+        function safeRenderChineseText(canvas, textConfig) {
+            if (!canvas || !textConfig) return;
+            
+            const ctx = canvas.getContext('2d');
+            const { text, fontSize = 20, lines, keywords = [], isPremium = false } = textConfig;
+            
+            try {
+                // 🔧 新功能：根据卡牌类型动态调整文字颜色和描边
+                // 金色传说/史诗：白色文字 + 深色描边，普通卡牌：黑色文字无描边
+                const textColor = isPremium ? '#FFFFFF' : '#000000';
+                const useStroke = isPremium; // 金色卡牌使用描边增强可读性
+                
+                ctx.fillStyle = textColor;
+                if (useStroke) {
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'; // 半透明黑色描边
+                    ctx.lineWidth = 1.5; // 轻微描边
+                }
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'ideographic';
+                
+                console.log(`🎨 文字设置: isPremium=${isPremium}, textColor=${textColor}, stroke=${useStroke}`);
+                
+                const baseX = 88;
+                const baseY = 385;
+                const lineHeight = Math.round(fontSize * 1.3);
+                
+                console.log('🔍 safeRenderChineseText 开始渲染，总行数:', lines.length);
+                console.log('🔍 所有行内容:', lines);
+                
+                lines.forEach((line, lineIndex) => {
+                    if (lineIndex >= 4) return; // 最多4行
+                    
+                    console.log(`🔍 处理第${lineIndex}行: "${line}"`);
+                    console.log(`🔍 行中是否包含<b>标签:`, line.includes('<b>'));
+                    
+                    let currentX = baseX;
+                    const y = baseY + fontSize + (lineIndex * lineHeight);
+                    
+                    // 应用缩进
+                    if (lineIndex === 2) currentX += 38;
+                    if (lineIndex === 3) currentX += 40;
+                    
+                    let i = 0;
+                    const safeLimit = line.length + 10;
+                    let iterations = 0;
+                    
+                    while (i < line.length && iterations < safeLimit) {
+                        iterations++;
+                        
+                        if (line.substr(i, 3) === '<b>') {
+                            console.log(`🔍 找到<b>标签在位置 ${i}`);
+                            const endIndex = line.indexOf('</b>', i);
+                            console.log(`🔍 找到</b>标签在位置 ${endIndex}`);
+                            if (endIndex > i) {
+                                const boldText = line.substring(i + 3, endIndex);
+                                console.log(`🔍 提取粗体文本: "${boldText}"`);
+                                
+                                // 设置粗体（使用与当前上下文相同的颜色）
+                                ctx.font = `bold ${fontSize}px "经典隶变简", Arial, sans-serif`;
+                                ctx.fillStyle = textColor; // 确保粗体使用正确颜色
+                                
+                                // 先绘制描边（如果需要），再绘制填充
+                                if (useStroke) {
+                                    ctx.strokeText(boldText, currentX, y);
+                                }
+                                ctx.fillText(boldText, currentX, y);
+                                currentX += ctx.measureText(boldText).width;
+                                
+                                console.log(`🔍 粗体文本已渲染，跳转到位置 ${endIndex + 4}`);
+                                i = endIndex + 4;
+                                continue;
+                            } else {
+                                console.log(`🔍 ⚠️ 没有找到匹配的</b>标签`);
+                            }
+                        }
+                        
+                        // 普通字符
+                        const char = line[i];
+                        console.log(`🔍 渲染普通字符: "${char}" 在位置 ${i}`);
+                        ctx.font = `${fontSize}px "经典隶变简", Arial, sans-serif`;
+                        ctx.fillStyle = textColor; // 确保普通字符使用正确颜色
+                        
+                        // 先绘制描边（如果需要），再绘制填充
+                        if (useStroke) {
+                            ctx.strokeText(char, currentX, y);
+                        }
+                        ctx.fillText(char, currentX, y);
+                        currentX += ctx.measureText(char).width;
+                        i++;
+                    }
+                });
+                
+                console.log(`✅ 中文文本渲染成功: ${lines.length}行, ${keywords.length}个关键词`);
+            } catch (error) {
+                console.error('中文文本渲染失败:', error);
+            }
+        }
+
+        // 全局错误处理器
+        window.addEventListener('error', function(event) {
+            console.error('全局JavaScript错误:', event.error);
+            updateStatus('发生JavaScript错误: ' + event.message, 'error');
+        });
+
+        // 未处理的Promise拒绝
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('未处理的Promise拒绝:', event.reason);
+            updateStatus('Promise错误: ' + event.reason, 'error');
+        });
+
+        // 调试日志函数
+        function debugLog(message, data) {
+            if (debugMode) {
+                console.log('[DEBUG] ' + message, data || '');
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('DOM加载完成，开始初始化...');
+            try {
+                // 等待Sunwell库加载完成
+                waitForSunwell().then(function() {
+                    debugLog('Sunwell库加载完成，开始初始化');
+                    initializeSunwell();
+                    setupEventListeners();
+                    loadTemplate('legendary'); // 默认加载传说模板
+                }).catch(function(error) {
+                    console.error('等待Sunwell库加载失败:', error);
+                    updateStatus('Sunwell库加载失败，请刷新页面重试', 'error');
+                });
+            } catch (error) {
+                console.error('初始化过程中出错:', error);
+                updateStatus('初始化失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 等待Sunwell库加载完成
+        function waitForSunwell() {
+            return new Promise(function(resolve, reject) {
+                var maxAttempts = 50; // 最多等待5秒
+                var attempts = 0;
+                
+                function checkSunwell() {
+                    debugLog('检查Sunwell库，尝试次数: ' + (attempts + 1));
+                    if (typeof Sunwell !== 'undefined') {
+                        debugLog('Sunwell库已加载');
+                        resolve();
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(checkSunwell, 100);
+                    } else {
+                        debugLog('Sunwell库加载超时');
+                        reject(new Error('Sunwell库加载超时'));
+                    }
+                }
+                
+                checkSunwell();
+            });
+        }
+
+        // 初始化Sunwell库
+        function initializeSunwell() {
+            try {
+                debugLog('开始初始化Sunwell库');
+                if (typeof Sunwell === 'undefined') {
+                    throw new Error('Sunwell库未加载');
+                }
+
+                debugLog('创建Sunwell实例');
+                sunwell = new Sunwell({
+                    assetFolder: './assets/',
+                    titleFont: "Arial, sans-serif", // 使用安全字体避免加载问题
+                    bodyFontRegular: "Arial, sans-serif",
+                    bodyFontItalic: "Arial, sans-serif",  
+                    bodyFontBold: "Arial, sans-serif",
+                    bodyFontBoldItalic: "Arial, sans-serif",
+                    bodyFontSize: 1, // 设置极小字体让文本不可见
+                    bodyLineHeight: 1,
+                    bodyFontOffset: {x: -9999, y: -9999}, // 移出可视区域
+                    gemFont: "Arial, sans-serif",
+                    nameFont: "Arial, sans-serif", // 确保名称字体也设置
+                    raceFont: "Arial, sans-serif", // 种族字体
+                    drawTimeout: 30000, // 增加超时时间到30秒
+                    debug: false // 禁用Sunwell调试以减少干扰
+                });
+                
+                debugLog('Sunwell实例创建成功', sunwell);
+                updateStatus('Sunwell库初始化成功', 'success');
+            } catch (error) {
+                console.error('初始化Sunwell时出错:', error);
+                updateStatus('Sunwell库加载失败: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            const form = document.getElementById('cardForm');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', debounce(generateCard, 500));
+                input.addEventListener('change', generateCard);
+            });
+        }
+
+        // 防抖函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 处理图片上传
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage = e.target.result;
+                    const preview = document.getElementById('imagePreview');
+                    const uploadText = document.getElementById('uploadText');
+                    
+                    preview.src = uploadedImage;
+                    preview.style.display = 'block';
+                    uploadText.style.display = 'none';
+                    
+                    generateCard();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 加载预设模板
+        function loadTemplate(templateType) {
+            const templates = {
+                legendary: {
+                    cardName: '龙王玛里苟斯',
+                    cardText: '战吼：发现一张法术牌。当你在本回合中施放它时，再次施放它。',
+                    cost: 9,
+                    attack: 4,
+                    health: 12,
+                    cardClass: 'NEUTRAL',
+                    rarity: 'LEGENDARY',
+                    cardType: 'MINION',
+                    race: 'DRAGON',
+                    cardSet: 'EXPERT1'
+                },
+                epic: {
+                    cardName: '烈焰风暴',
+                    cardText: '战吼：对所有敌方随从造成2点伤害。亡语：召唤一个2/2的火元素。',
+                    cost: 7,
+                    attack: 5,
+                    health: 4,
+                    cardClass: 'MAGE',
+                    rarity: 'EPIC',
+                    cardType: 'MINION',
+                    race: 'ELEMENTAL',
+                    cardSet: 'EXPERT1'
+                },
+                rare: {
+                    cardName: '霜之哀伤',
+                    cardText: '嘲讽：敌方随从必须先攻击具有嘲讽的随从。风怒：可以攻击两次。',
+                    cost: 6,
+                    attack: 4,
+                    health: 5,
+                    cardClass: 'WARRIOR',
+                    rarity: 'RARE',
+                    cardType: 'MINION',
+                    race: '',
+                    cardSet: 'EXPERT1'
+                },
+                random: generateRandomCard()
+            };
+
+            const template = templates[templateType];
+            if (template) {
+                Object.keys(template).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = template[key];
+                    }
+                });
+                generateCard();
+            }
+        }
+
+        // 生成随机卡牌数据
+        function generateRandomCard() {
+            const names = ['神秘法师', '勇敢战士', '暗影刺客', '光明守护者', '元素召唤师', '龙族领主', '机械工匠', '野兽驯服者'];
+            const classes = ['DRUID', 'HUNTER', 'MAGE', 'PALADIN', 'PRIEST', 'ROGUE', 'SHAMAN', 'WARLOCK', 'WARRIOR', 'NEUTRAL'];
+            const rarities = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY'];
+            const types = ['MINION', 'SPELL', 'WEAPON'];
+            const races = ['', 'BEAST', 'DEMON', 'DRAGON', 'ELEMENTAL', 'MECH', 'MURLOC', 'PIRATE'];
+            const effects = ['战吼：抽一张牌。', '亡语：召唤一个1/1的小兵。', '嘲讽', '冲锋', '潜行', '法术伤害+1'];
+
+            return {
+                cardName: names[Math.floor(Math.random() * names.length)],
+                cardText: effects[Math.floor(Math.random() * effects.length)],
+                cost: Math.floor(Math.random() * 10) + 1,
+                attack: Math.floor(Math.random() * 8) + 1,
+                health: Math.floor(Math.random() * 8) + 1,
+                cardClass: classes[Math.floor(Math.random() * classes.length)],
+                rarity: rarities[Math.floor(Math.random() * rarities.length)],
+                cardType: types[Math.floor(Math.random() * types.length)],
+                race: races[Math.floor(Math.random() * races.length)],
+                cardSet: 'EXPERT1'
+            };
+        }
+
+        // 🛡️ 安全的卡牌生成函数 - 完全重写
+        function generateCard() {
+            debugLog('开始生成卡牌...');
+            updateStatus('正在生成卡牌...', 'loading');
+            
+            try {
+                // 检查Sunwell库是否已初始化
+                if (!sunwell) {
+                    debugLog('Sunwell库未初始化');
+                    updateStatus('Sunwell库未初始化，请刷新页面重试', 'error');
+                    return;
+                }
+                
+                // 收集表单数据
+                currentCardData = collectFormData();
+                debugLog('收集到的卡牌数据:', currentCardData);
+                
+                // 验证必要字段
+                if (!currentCardData.name || !currentCardData.name.trim()) {
+                    updateStatus('请输入卡牌名称', 'error');
+                    return;
+                }
+                
+                // 保存原始文本，但直接使用中文名称和文本
+                const originalText = currentCardData.text;
+                const originalName = currentCardData.name;
+                
+                // 🔧 关键修复：不再替换为英文，直接使用中文内容
+                // Sunwell现在可以处理中文，因为我们已修复chars函数
+                
+                const canvas = document.getElementById('cardCanvas');
+                if (!canvas) {
+                    updateStatus('找不到画布元素', 'error');
+                    return;
+                }
+                
+                // 增强的超时和错误处理
+                let isCompleted = false;
+                const timeoutId = setTimeout(() => {
+                    if (!isCompleted) {
+                        updateStatus('卡牌生成超时，请检查文本内容或重试', 'error');
+                        // 显示错误提示
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#ff0000';
+                        ctx.font = '20px Arial';
+                        ctx.fillText('渲染超时 - 请检查文本后重试', 20, 100);
+                    }
+                }, 20000);
+                
+                // 使用Sunwell渲染卡牌
+                const isPremium = (currentCardData.rarity === 'LEGENDARY' || currentCardData.rarity === 'EPIC');
+                
+                console.log('🔍 传给Sunwell的卡牌数据:', currentCardData);
+                console.log('🔍 特别是文本字段:', currentCardData.text);
+                
+                const card = sunwell.createCard(
+                    currentCardData,
+                    400,
+                    isPremium,
+                    canvas,
+                    function(renderedCanvas) {
+                        isCompleted = true;
+                        clearTimeout(timeoutId);
+                        
+                        debugLog('卡牌基础渲染完成');
+                        
+                        try {
+                            // 安全的中文文本处理
+                            if (renderedCanvas && originalText && originalText.trim()) {
+                                // 直接使用已处理的文本，避免重复处理
+                                const processedText = currentCardData.text;
+                                const textLength = processedText.length;
+                                
+                                // 智能字体选择
+                                let fontSize = 20;
+                                if (textLength <= 15) fontSize = 23;
+                                else if (textLength <= 30) fontSize = 21;
+                                else if (textLength <= 50) fontSize = 19;
+                                
+                                // 🔧 使用实际测量的文本框宽度（炉石卡牌文本区域约215px）
+                                const lines = safeTextSplit(processedText, 215, fontSize);
+                                
+                                const textConfig = {
+                                    text: originalText,
+                                    processedText: processedText,
+                                    fontSize: fontSize,
+                                    lines: lines,
+                                    isPremium: isPremium  // 🔧 传递金色卡牌状态
+                                };
+                                
+                                safeRenderChineseText(renderedCanvas, textConfig);
+                                
+                                // 🔧 修复：不再需要手动渲染中文名称，Sunwell已直接渲染
+                                console.log(`✅ 卡牌名称由Sunwell直接渲染: "${originalName}"`);
+                                
+                                const colorInfo = isPremium ? '白色文字(金色)' : '黑色文字(普通)';
+                                updateStatus(`卡牌生成成功！${fontSize}px字体，${lines.length}行，${colorInfo}`, 'success');
+                            } else {
+                                updateStatus('卡牌生成成功！', 'success');
+                            }
+                        } catch (textError) {
+                            console.error('中文文本处理失败:', textError);
+                            updateStatus('卡牌基础渲染成功，中文文本处理失败', 'success');
+                        }
+                    }
+                );
+                
+            } catch (error) {
+                debugLog('生成卡牌时出错:', error);
+                console.error('生成卡牌时出错:', error);
+                updateStatus('生成卡牌时出错: ' + error.message, 'error');
+            }
+        }
+
+        // 收集表单数据
+        function collectFormData() {
+            debugLog('开始收集表单数据');
+            
+            try {
+                const formData = new FormData(document.getElementById('cardForm'));
+                
+                // 🔧 处理卡牌文本中的关键词
+                let cardText = formData.get('cardText') || '';
+                console.log('🔍 原始文本:', cardText);
+                if (cardText) {
+                    const processedResult = safeProcessKeywords(cardText);
+                    cardText = processedResult.processedText;
+                    console.log('🔍 处理后文本:', cardText);
+                    console.log('🔍 找到的关键词:', processedResult.foundKeywords);
+                }
+                
+                const cardData = {
+                    id: 'CUSTOM_' + Date.now(),
+                    name: formData.get('cardName') || '未命名卡牌',
+                    text: cardText,
+                    cost: parseInt(formData.get('cost')) || 0,
+                    attack: parseInt(formData.get('attack')) || 0,
+                    health: parseInt(formData.get('health')) || 1,
+                    cardClass: formData.get('cardClass') || 'NEUTRAL',
+                    rarity: formData.get('rarity') || 'COMMON',
+                    type: formData.get('cardType') || 'MINION',
+                    race: formData.get('race') || '',
+                    set: formData.get('cardSet') || 'EXPERT1',
+                    collectible: true,
+                    texture: uploadedImage,
+                    collectionText: cardText,
+                    flavor: '',
+                    elite: false,
+                    silenced: false,
+                    hideStats: false,
+                    costsHealth: false,
+                    armor: 0
+                };
+                
+                // 根据卡牌类型调整属性
+                if (cardData.type === 'SPELL') {
+                    delete cardData.attack;
+                    delete cardData.health;
+                } else if (cardData.type === 'WEAPON') {
+                    cardData.durability = cardData.health;
+                    delete cardData.health;
+                }
+
+                // 设置传说卡牌的精英标记
+                cardData.elite = (cardData.rarity === 'LEGENDARY');
+
+                debugLog('最终卡牌数据:', cardData);
+                return cardData;
+            } catch (error) {
+                debugLog('收集表单数据时出错:', error);
+                console.error('收集表单数据时出错:', error);
+                throw error;
+            }
+        }
+
+        // 下载卡牌
+        function downloadCard() {
+            const canvas = document.getElementById('cardCanvas');
+            const link = document.createElement('a');
+            const cardName = document.getElementById('cardName').value || '自定义卡牌';
+            
+            link.download = `${cardName}_炉石卡牌.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            updateStatus('卡牌已下载！', 'success');
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('cardForm').reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('uploadText').style.display = 'block';
+            uploadedImage = null;
+            
+            const canvas = document.getElementById('cardCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            updateStatus('表单已重置', 'success');
+        }
+
+        // 更新状态显示
+        function updateStatus(message, type) {
+            debugLog('更新状态:', { message, type });
+            try {
+                const statusElement = document.getElementById('status');
+                if (!statusElement) {
+                    debugLog('找不到状态元素');
+                    return;
+                }
+                statusElement.textContent = message;
+                statusElement.className = `status ${type}`;
+                debugLog('状态更新成功');
+            } catch (error) {
+                debugLog('更新状态时出错:', error);
+                console.error('更新状态时出错:', error);
+            }
+        }
+    </script>
+</body>
+</html>
